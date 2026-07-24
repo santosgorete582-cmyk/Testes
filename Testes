@@ -2734,3 +2734,908 @@ TabAntis:AddButton({
     end
 })
 
+-- ====================================================================
+-- ABA: LAG 
+-- ====================================================================
+TabLag:AddSection({ Name = "Shutdown Personalizado" })
+
+local function ShutdownLogic(loops)
+    for m = 1, loops do
+        vu8.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "FireHose")
+        pcall(function() vu7.Backpack.FireHose.ToolSound:FireServer("FireHose", "DestroyFireHose") end)
+    end
+    local oldcf = vu7.Character.HumanoidRootPart.CFrame
+    vu7.Character.HumanoidRootPart.CFrame = CFrame.new(999999999, -475, 999999999)
+    repeat task.wait() until not vu7.Character:FindFirstChild("HumanoidRootPart") or vu7.Character.HumanoidRootPart.Parent == nil
+    repeat task.wait() until vu7.Character:FindFirstChild("HumanoidRootPart")
+    vu7.Character.HumanoidRootPart.CFrame = oldcf
+    game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Shutdown", Text = "Concluído!", Duration = 5})
+    for _, item in pairs(vu7.Backpack:GetChildren()) do if item.Name == "FireHose" then item.Parent = vu7.Character end end
+    task.wait(0.5)
+    vu7.Character.HumanoidRootPart.CFrame = CFrame.new(9999, -475, 9999)
+end
+
+TabLag:AddButton({ Name = "Shutdown Servidor", Callback = function() ShutdownLogic(495) end })
+TabLag:AddButton({ Name = "Shutdown Servidor (Erro Internet)", Callback = function() ShutdownLogic(535) end })
+TabLag:AddButton({ Name = "Shutdown Servidor (Timeout)", Callback = function() ShutdownLogic(635) end })
+-- ==================== VARIÁVEIS GLOBAIS ====================
+local CurrentLagType = "Phone"
+local LagActive = false
+local LagThread = nil
+local LastCFrame = nil
+local player = game.Players.LocalPlayer
+
+local StretcherLagActive = false
+local StretcherLagThread = nil
+
+local FireXLagActive = false
+local FireXLagThread = nil
+
+local BombLagServerActive = false
+
+local PhoneLagServer = false
+local PhoneLagThread = nil
+
+local LaptopLagServer = false
+local LaptopLagThread = nil
+
+local PhoneLaptopLagServer = false
+local PhoneLaptopLagThread = nil
+
+local BasketballLagServer = false
+local BasketballLagThread = nil
+
+local GhostHunterLagServer = false
+local GhostHunterLagThread = nil
+
+local BookLagServer = false
+local BookLagThread = nil
+
+-- ==================== FUNÇÕES DE LAG SERVER ====================
+
+local function clickNormally(object)
+    local clickDetector = object:FindFirstChildWhichIsA("ClickDetector")
+    if clickDetector then
+        fireclickdetector(clickDetector)
+    end
+end
+
+function StartPhoneLagServer()
+    if not shouldPlayerBeLagged() then return end
+    PhoneLagServer = true
+    PhoneLagThread = task.spawn(function()
+        while PhoneLagServer do
+            fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools.Iphone.ClickDetector)
+            task.wait()
+        end
+    end)
+end
+
+function StopPhoneLagServer()
+    PhoneLagServer = false
+    if PhoneLagThread then
+        task.cancel(PhoneLagThread)
+        PhoneLagThread = nil
+    end
+end
+
+function StartLaptopLagServer()
+    if not shouldPlayerBeLagged() then return end
+    LaptopLagServer = true
+    LaptopLagThread = task.spawn(function()
+        while LaptopLagServer do
+            fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools.Laptop.ClickDetector)
+            task.wait()
+        end
+    end)
+end
+
+function StopLaptopLagServer()
+    LaptopLagServer = false
+    if LaptopLagThread then
+        task.cancel(LaptopLagThread)
+        LaptopLagThread = nil
+    end
+end
+
+function StartPhoneLaptopLagServer()
+    if not shouldPlayerBeLagged() then return end
+    PhoneLaptopLagServer = true
+    PhoneLaptopLagThread = task.spawn(function()
+        while PhoneLaptopLagServer do
+            fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools:GetChildren()[3].ClickDetector)
+            task.wait(0.1)
+            fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools.Laptop.ClickDetector)
+            task.wait(0.01)
+        end
+    end)
+end
+
+function StopPhoneLaptopLagServer()
+    PhoneLaptopLagServer = false
+    if PhoneLaptopLagThread then
+        task.cancel(PhoneLaptopLagThread)
+        PhoneLaptopLagThread = nil
+    end
+end
+
+function StartBasketballLagServer()
+    if not shouldPlayerBeLagged() then return end
+    BasketballLagServer = true
+    BasketballLagThread = task.spawn(function()
+        while BasketballLagServer do
+            fireclickdetector(workspace.WorkspaceCom["001_GiveTools"].Basketball.ClickDetector)
+            local args = { Vector3.new(-154.34115600585938, 4.365168571472168, 97.59996795654297) }
+            for _, tool in ipairs(player.Character:GetChildren()) do
+                if tool:IsA("Tool") and tool:FindFirstChild("ClickEvent") then
+                    tool.ClickEvent:FireServer(unpack(args))
+                end
+            end
+            task.wait()
+        end
+    end)
+end
+
+function StopBasketballLagServer()
+    BasketballLagServer = false
+    if BasketballLagThread then
+        task.cancel(BasketballLagThread)
+        BasketballLagThread = nil
+    end
+end
+
+function StartGhostHunterLagServer()
+    if not shouldPlayerBeLagged() then return end
+    GhostHunterLagServer = true
+    GhostHunterLagThread = task.spawn(function()
+        while GhostHunterLagServer do
+            fireclickdetector(workspace.WorkspaceCom["001_GiveTools"].GhostMeter.ClickDetector)
+            task.wait(0.01)
+        end
+    end)
+end
+
+function StopGhostHunterLagServer()
+    GhostHunterLagServer = false
+    if GhostHunterLagThread then
+        task.cancel(GhostHunterLagThread)
+        GhostHunterLagThread = nil
+    end
+end
+
+function StartBookLagServer()
+    if not shouldPlayerBeLagged() then return end
+    BookLagServer = true
+    BookLagThread = task.spawn(function()
+        while BookLagServer do
+            local bookPath = workspace.WorkspaceCom["001_GiveTools"]:FindFirstChild("Book")
+            if bookPath then
+                player.Character.HumanoidRootPart.CFrame = bookPath.CFrame
+                clickNormally(bookPath)
+            end
+            task.wait(0.01)
+        end
+    end)
+end
+
+function StopBookLagServer()
+    BookLagServer = false
+    if BookLagThread then
+        task.cancel(BookLagThread)
+        BookLagThread = nil
+    end
+end
+
+function StartStretcherLagServer()
+    if not shouldPlayerBeLagged() then return end
+    StretcherLagActive = true
+    StretcherLagThread = task.spawn(function()
+        while StretcherLagActive do
+            duplicarStretcher()
+            task.wait(0.001)
+        end
+    end)
+end
+
+function StopStretcherLagServer()
+    StretcherLagActive = false
+    if StretcherLagThread then
+        task.cancel(StretcherLagThread)
+        StretcherLagThread = nil
+    end
+end
+
+function StartFireXLagServer()
+    if not shouldPlayerBeLagged() then return end
+    FireXLagActive = true
+    FireXLagThread = task.spawn(function()
+        while FireXLagActive do
+            duplicarFireX()
+            task.wait(0.001)
+        end
+    end)
+end
+
+function StopFireXLagServer()
+    FireXLagActive = false
+    if FireXLagThread then
+        task.cancel(FireXLagThread)
+        FireXLagThread = nil
+    end
+end
+
+-- ==================== START / STOP LAG PRINCIPAL ====================
+
+function StartLag()
+    if LagActive then return end
+    if not shouldPlayerBeLagged() then return end
+
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+
+    LastCFrame = player.Character.HumanoidRootPart.CFrame
+
+    if CurrentLagType == "Phone" then
+        if getgenv()._PhoneLagServerRunning then return end
+        getgenv()._PhoneLagServerRunning = true
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-117, 20, 255)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        task.wait(1)
+        if not getgenv()._PhoneLagServerRunning then return end
+        fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialPlot1Buttons.Commercial1Store1.ClickDetector)
+        task.wait(1)
+        if not getgenv()._PhoneLagServerRunning then return end
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-117, 20, 255)
+        StartPhoneLagServer()
+
+    elseif CurrentLagType == "Laptop" then
+        if getgenv()._LaptopLagServerRunning then return end
+        getgenv()._LaptopLagServerRunning = true
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-117, 20, 255)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        task.wait(1)
+        if not getgenv()._LaptopLagServerRunning then return end
+        fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialPlot1Buttons.Commercial1Store1.ClickDetector)
+        task.wait(1)
+        if not getgenv()._LaptopLagServerRunning then return end
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-117, 20, 255)
+        StartLaptopLagServer()
+
+    elseif CurrentLagType == "Phone and Laptop" then
+        if getgenv()._PhoneLaptopLagServerRunning then return end
+        getgenv()._PhoneLaptopLagServerRunning = true
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-123.742, 20.074, 251.402)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        task.wait(1)
+        if not getgenv()._PhoneLaptopLagServerRunning then return end
+        fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialPlot1Buttons.Commercial1Store1.ClickDetector)
+        task.wait(1)
+        if not getgenv()._PhoneLaptopLagServerRunning then return end
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-123.742, 20.074, 251.402)
+        StartPhoneLaptopLagServer()
+
+    elseif CurrentLagType == "Basketball" then
+        if getgenv()._BasketballLagServerRunning then return end
+        getgenv()._BasketballLagServerRunning = true
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-135, 3, 85)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        workspace.Gravity = 5
+        StartBasketballLagServer()
+
+    elseif CurrentLagType == "Ghost Hunter" then
+        if getgenv()._GhostHunterLagServerRunning then return end
+        getgenv()._GhostHunterLagServerRunning = true
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-320.216, 7.4, -112.32)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        StartGhostHunterLagServer()
+
+    elseif CurrentLagType == "Book" then
+        if getgenv()._BookLagServerRunning then return end
+        getgenv()._BookLagServerRunning = true
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        StartBookLagServer()
+
+    elseif CurrentLagType == "Stretcher" then
+        if getgenv()._StretcherLagServerRunning then return end
+        getgenv()._StretcherLagServerRunning = true
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        StartStretcherLagServer()
+
+    elseif CurrentLagType == "FireX" then
+        if getgenv()._FireXLagServerRunning then return end
+        getgenv()._FireXLagServerRunning = true
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        StartFireXLagServer()
+
+    elseif CurrentLagType == "Bomb" then
+        if getgenv()._BombLagServerRunning then return end
+        getgenv()._BombLagServerRunning = true
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        BombLag(true)
+    end
+
+    LagActive = true
+end
+
+function StopLag()
+    if not LagActive then return end
+
+    if CurrentLagType == "Phone" then
+        StopPhoneLagServer()
+        getgenv()._PhoneLagServerRunning = false
+
+    elseif CurrentLagType == "Laptop" then
+        StopLaptopLagServer()
+        getgenv()._LaptopLagServerRunning = false
+
+    elseif CurrentLagType == "Phone and Laptop" then
+        StopPhoneLaptopLagServer()
+        getgenv()._PhoneLaptopLagServerRunning = false
+
+    elseif CurrentLagType == "Basketball" then
+        StopBasketballLagServer()
+        workspace.Gravity = 196.2
+        getgenv()._BasketballLagServerRunning = false
+
+    elseif CurrentLagType == "Ghost Hunter" then
+        StopGhostHunterLagServer()
+        getgenv()._GhostHunterLagServerRunning = false
+
+    elseif CurrentLagType == "Book" then
+        StopBookLagServer()
+        getgenv()._BookLagServerRunning = false
+
+    elseif CurrentLagType == "Stretcher" then
+        StopStretcherLagServer()
+        getgenv()._StretcherLagServerRunning = false
+
+    elseif CurrentLagType == "FireX" then
+        StopFireXLagServer()
+        getgenv()._FireXLagServerRunning = false
+
+    elseif CurrentLagType == "Bomb" then
+        BombLag(false)
+        getgenv()._BombLagServerRunning = false
+    end
+
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = 16
+        player.Character.Humanoid.JumpPower = 50
+    end
+
+    if LastCFrame and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = LastCFrame
+    end
+
+    LagActive = false
+end
+
+-- Reset ao respawn
+player.CharacterAdded:Connect(function()
+    LagActive = false
+    LastCFrame = nil
+    getgenv()._PhoneLagServerRunning = false
+    getgenv()._LaptopLagServerRunning = false
+    getgenv()._PhoneLaptopLagServerRunning = false
+    getgenv()._BasketballLagServerRunning = false
+    getgenv()._GhostHunterLagServerRunning = false
+    getgenv()._BookLagServerRunning = false
+    getgenv()._StretcherLagServerRunning = false
+    getgenv()._FireXLagServerRunning = false
+    getgenv()._BombLagServerRunning = false
+end)
+
+-- ==================== UI - LAG GERAL ====================
+
+TabLag:AddDropdown({
+    Title = "Selecione Tipo de lag",
+    Description = "Selecionar o tipo de lag",
+    Options = {"Phone", "Laptop", "Phone and Laptop", "Basketball", "Ghost Hunter", "Book", "Stretcher", "FireX", "Bomb"},
+    Multi = false,
+    Default = 1,
+    Callback = function(Value)
+        if LagActive then StopLag() end
+        CurrentLagType = Value
+    end
+})
+
+TabLag:AddToggle({
+    Title = "ATIVA",
+    Description = "",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            StartLag()
+        else
+            StopLag()
+        end
+    end
+})
+
+-- ==================== UI - LAG EM JOGADOR ESPECÍFICO ====================
+
+TabLag:AddSection({"Alvos Do Lags v1"})
+
+local TargetPlayerName = ""
+local TargetLagMethod = "Phone"
+local TargetLagActive = false
+local TargetLagThread = nil
+local PlayerList = {}
+
+local function UpdatePlayerList()
+    PlayerList = {}
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= game.Players.LocalPlayer then
+            table.insert(PlayerList, plr.Name)
+        end
+    end
+    return PlayerList
+end
+
+local function StartTargetLag()
+    if TargetLagActive or TargetPlayerName == "" then return end
+
+    local targetPlayer = game.Players:FindFirstChild(TargetPlayerName)
+    if not targetPlayer then return end
+
+    TargetLagActive = true
+
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+        TargetLagActive = false
+        return
+    end
+
+    LastCFrame = player.Character.HumanoidRootPart.CFrame
+
+    -- Preparação inicial conforme o método
+    if TargetLagMethod == "Phone" or TargetLagMethod == "Laptop" or TargetLagMethod == "Phone and Laptop" then
+        local pos = (TargetLagMethod == "Phone and Laptop") and CFrame.new(-123.742, 20.074, 251.402) or CFrame.new(-117, 20, 255)
+        player.Character.HumanoidRootPart.CFrame = pos
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        task.wait(1)
+        if not TargetLagActive then return end
+        fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialPlot1Buttons.Commercial1Store1.ClickDetector)
+        task.wait(1)
+        if not TargetLagActive then return end
+        player.Character.HumanoidRootPart.CFrame = pos
+
+    elseif TargetLagMethod == "Basketball" then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-135, 3, 85)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+        workspace.Gravity = 5
+
+    elseif TargetLagMethod == "Ghost Hunter" then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-320.216, 7.4, -112.32)
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+
+    elseif TargetLagMethod == "Book" or TargetLagMethod == "Stretcher" or TargetLagMethod == "FireX" or TargetLagMethod == "Bomb" then
+        player.Character.Humanoid.WalkSpeed = 0
+        player.Character.Humanoid.JumpPower = 0
+    end
+
+    TargetLagThread = task.spawn(function()
+        while TargetLagActive do
+            local currentTarget = game.Players:FindFirstChild(TargetPlayerName)
+            if not currentTarget then break end
+
+            if TargetLagMethod == "Phone" then
+                fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools.Iphone.ClickDetector)
+            elseif TargetLagMethod == "Laptop" then
+                fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools.Laptop.ClickDetector)
+            elseif TargetLagMethod == "Phone and Laptop" then
+                fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools:GetChildren()[3].ClickDetector)
+                task.wait(0.1)
+                fireclickdetector(workspace.WorkspaceCom["001_CommercialStores"].CommercialStorage1.Store.Tools.Laptop.ClickDetector)
+            elseif TargetLagMethod == "Basketball" then
+                fireclickdetector(workspace.WorkspaceCom["001_GiveTools"].Basketball.ClickDetector)
+                task.wait(0.1)
+                local args = { Vector3.new(-154.34115600585938, 4.365168571472168, 97.59996795654297) }
+                if player.Character then
+                    for _, tool in ipairs(player.Character:GetChildren()) do
+                        if tool:IsA("Tool") and tool:FindFirstChild("ClickEvent") then
+                            tool.ClickEvent:FireServer(unpack(args))
+                        end
+                    end
+                end
+            elseif TargetLagMethod == "Ghost Hunter" then
+                fireclickdetector(workspace.WorkspaceCom["001_GiveTools"].GhostMeter.ClickDetector)
+            elseif TargetLagMethod == "Book" then
+                local bookPath = workspace.WorkspaceCom["001_GiveTools"]:FindFirstChild("Book")
+                if bookPath then
+                    player.Character.HumanoidRootPart.CFrame = bookPath.CFrame
+                    clickNormally(bookPath)
+                end
+            elseif TargetLagMethod == "Stretcher" then
+                duplicarStretcher()
+            elseif TargetLagMethod == "FireX" then
+                duplicarFireX()
+            elseif TargetLagMethod == "Bomb" then
+                local Bomb = workspace:WaitForChild("WorkspaceCom"):WaitForChild("001_CriminalWeapons"):WaitForChild("GiveTools"):WaitForChild("Bomb")
+                if Bomb and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = Bomb.CFrame
+                    fireclickdetector(Bomb.ClickDetector)
+                end
+            end
+
+            task.wait(0.01)
+        end
+    end)
+end
+
+local function StopTargetLag()
+    TargetLagActive = false
+    if TargetLagThread then
+        task.cancel(TargetLagThread)
+        TargetLagThread = nil
+    end
+
+    if TargetLagMethod == "Basketball" then
+        workspace.Gravity = 196.2
+    end
+
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = 16
+        player.Character.Humanoid.JumpPower = 50
+    end
+
+    if LastCFrame and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = LastCFrame
+    end
+end
+
+UpdatePlayerList()
+
+local lagsv = TabLag:AddDropdown({
+    Title = ("Selecione Jogador"),
+    Description = "Escolha qual jogador ficará para trás",
+    Options = PlayerList,
+    Default = "Players",
+    Callback = function(Value)
+        if TargetLagActive then StopTargetLag() end
+        TargetPlayerName = Value
+    end
+})
+
+local dropdon = TabLag:AddDropdown({
+    Title = "Selecionar um método",
+    Description = "Selecione um método para Laga a pessoa",
+    Options = {"Phone", "Laptop", "Phone and Laptop", "Basketball", "Ghost Hunter", "Book", "Stretcher", "FireX", "Bomb"},
+    Default = "Method",
+    Callback = function(Value)
+        if TargetLagActive then StopTargetLag() end
+        TargetLagMethod = Value
+    end
+})
+
+TabLag:AddButton({
+    Name = "Atualizar Jogadores",
+    Callback = function()
+        local lista = {}
+        for _, v in ipairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer then
+                table.insert(lista, v.Name)
+            end
+        end
+        lagsv:Set(lista)
+    end
+})
+
+TabLag:AddToggle({
+    Title = "Lag Player",
+    Description = "Apos seleciona use essa função",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            if TargetPlayerName ~= "" then
+                StartTargetLag()
+            end
+        else
+            StopTargetLag()
+        end
+    end
+})
+
+-- ==================== VISUALIZAR JOGADOR (CÂMERA) ====================
+
+TabLag:AddToggle({
+    Name = "Visualizar Jogador",
+    Description = "Acompanha o jogador com a câmera",
+    Default = false,
+    Callback = function(value)
+        if getgenv().CameraConnection then
+            getgenv().CameraConnection:Disconnect()
+            getgenv().CameraConnection = nil
+        end
+
+        if value then
+            getgenv().CameraConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                local target = Players:FindFirstChild(selectedPlayerName) or Players:FindFirstChild(selectedPlayer)
+                if target and target.Character and target.Character:FindFirstChildOfClass("Humanoid") then
+                    Camera.CameraSubject = target.Character:FindFirstChildOfClass("Humanoid")
+                elseif LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+                    Camera.CameraSubject = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                end
+            end)
+        else
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+                Camera.CameraSubject = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            end
+        end
+    end
+})
+
+-- ==================== BUGAR JOGADOR / SERVIDOR ====================
+
+TabLag:AddSection({ "Lag Geral e uma pessoa" })
+
+local selectedTarget = nil
+local ignoreTarget = nil
+local fireLoopActive = false
+local fireLoopActiveServer = false
+local shootingLog = {}
+
+local DripBug = TabLag:AddDropdown({
+    Name = "Selecione Uma Pessoa",
+    Description = ("Selecionar uma pessoa primeiro"),
+    Options = {},
+    Default = "Players",
+    Callback = function(name)
+        selectedTarget = Players:FindFirstChild(name)
+    end
+})
+
+local IgnoreDropdown = TabLag:AddDropdown({
+    Name = "Quem não será bugado?",
+    Description = "Escolhar um jogador pra não toma bugue server",
+    Options = {},
+    Default = "Players",
+    Callback = function(nome)
+        ignoreTarget = Players:FindFirstChild(nome)
+    end
+})
+
+TabLag:AddButton({
+    Name = "Atualizar lista",
+    Callback = function()
+        local lista = {}
+        for _, v in ipairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer then
+                table.insert(lista, v.Name)
+            end
+        end
+        DripBug:Set(lista)
+        IgnoreDropdown:Set(lista)
+    end
+})
+
+local function createBugArgs(target)
+    local gunScript = LocalPlayer.Backpack.Assault.GunScript_Local
+    return {
+        target.HumanoidRootPart,
+        target.HumanoidRootPart,
+        Vector3.new(100000000376832, 100000000376832, 100000000376832),
+        target.HumanoidRootPart.Position,
+        gunScript.MuzzleEffect,
+        gunScript.HitEffect,
+        0, 0,
+        {false},
+        {25, Vector3.new(100, 100, 100), BrickColor.new(29), 0.25, Enum.Material.SmoothPlastic, 0.25},
+        true,
+        false
+    }
+end
+
+TabLag:AddToggle({
+    Name = "Bugar Jogador <Selecionado>",
+    Description = "Ativa o bug e pega Assault automaticamente",
+    Default = false,
+    Callback = function(value)
+        fireLoopActive = value
+        if fireLoopActive then
+            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Assault")
+            task.spawn(function()
+                repeat task.wait(0.1) until
+                    LocalPlayer.Backpack:FindFirstChild("Assault") and
+                    LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local") and
+                    LocalPlayer.Backpack.Assault.GunScript_Local:FindFirstChild("MuzzleEffect") and
+                    LocalPlayer.Backpack.Assault.GunScript_Local:FindFirstChild("HitEffect")
+
+                while fireLoopActive and selectedTarget and selectedTarget.Character and selectedTarget.Character:FindFirstChild("HumanoidRootPart") do
+                    local args = createBugArgs(selectedTarget.Character)
+                    table.insert(shootingLog, {
+                        time = os.time(),
+                        target = selectedTarget.Name,
+                        position = tostring(selectedTarget.Character.HumanoidRootPart.Position)
+                    })
+                    ReplicatedStorage.RE:FindFirstChild("1Gu1n"):FireServer(unpack(args))
+                    task.wait(0.02)
+                end
+            end)
+        else
+            local args = { [1] = "ClearAllTools" }
+            ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer(unpack(args))
+        end
+    end
+})
+
+TabLag:AddToggle({
+    Name = "Bugar Servidor <Players>",
+    Description = "Buga geral menos você, é só assistir",
+    Default = false,
+    Callback = function(ativado)
+        fireLoopActiveServer = ativado
+        if fireLoopActiveServer then
+            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer("PickingTools", "Assault")
+            task.spawn(function()
+                repeat task.wait(0.1) until
+                    LocalPlayer.Backpack:FindFirstChild("Assault") and
+                    LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local") and
+                    LocalPlayer.Backpack.Assault.GunScript_Local:FindFirstChild("MuzzleEffect") and
+                    LocalPlayer.Backpack.Assault.GunScript_Local:FindFirstChild("HitEffect")
+
+                while fireLoopActiveServer do
+                    for _, alvo in ipairs(Players:GetPlayers()) do
+                        if alvo ~= LocalPlayer and alvo ~= ignoreTarget and alvo.Character and alvo.Character:FindFirstChild("HumanoidRootPart") then
+                            local args = createBugArgs(alvo.Character)
+                            ReplicatedStorage.RE:FindFirstChild("1Gu1n"):FireServer(unpack(args))
+                            task.wait(0.001)
+                        end
+                    end
+                end
+            end)
+        else
+            local args = { [1] = "ClearAllTools" }
+            ReplicatedStorage.RE["1Clea1rTool1s"]:FireServer(unpack(args))
+        end
+    end
+})
+
+-- ==================== PAINEL DE LAGS V3 ====================
+
+TabLag:AddSection({ "Painel De Lags V3" })
+
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local heartbeatConnection = nil
+local selectedName = "Common"
+
+local lagTargets = {
+    ["Common"] = true,
+    ["Burger Tray"] = "WorkspaceCom.001_GiveTools.BurgerTray",
+    ["Bomb"] = "WorkspaceCom.001_CriminalWeapons.GiveTools.Bomb",
+    ["Laptop"] = "WorkspaceCom.001_GiveTools.Laptop",
+    ["Paper Bag"] = "WorkspaceCom.001_GiveTools.Paperbag",
+    ["Chips"] = "WorkspaceCom.001_GiveTools.Chips",
+    ["Ice Cream"] = "WorkspaceCom.001_GiveTools.Icecream",
+    ["Taser"] = "WorkspaceCom.001_GiveTools.Taser",
+    ["Basketball"] = "WorkspaceCom.001_GiveTools.Basketball",
+    ["FireX"] = "WorkspaceCom.001_GiveTools.FireX",
+    ["Ladder"] = "WorkspaceCom.001_GiveTools.Ladder",
+    ["Ghost Meter"] = "WorkspaceCom.001_GiveTools.GhostMeter",
+    ["Clipboard"] = "WorkspaceCom.001_GiveTools.ClipBoard",
+    ["Stretcher"] = "WorkspaceCom.001_GiveTools.Stretcher",
+    ["Glock"] = "WorkspaceCom.001_CriminalWeapons.GiveTools.Glock",
+    ["Electric Guitar"] = "WorkspaceCom.001_GiveTools.ElectricGuitar",
+    ["Guitar"] = "WorkspaceCom.001_GiveTools.Guitar",
+    ["Book"] = "WorkspaceCom.001_GiveTools.Book",
+    ["Box"] = "WorkspaceCom.001_GiveTools.Box",
+    ["Frap Strawberry"] = "WorkspaceCom.001_GiveTools.FrapStrawberry",
+    ["Bank Keycard"] = "WorkspaceCom.001_GiveTools.BankKeyCard",
+    ["White Keycard"] = "WorkspaceCom.001_GiveTools.KeyCardWhite",
+    ["Mop"] = "WorkspaceCom.001_GiveTools.Mop",
+    ["Iphone"] = "WorkspaceCom.001_GiveTools.Iphone",
+    ["Ipad"] = "WorkspaceCom.001_GiveTools.Ipad"
+}
+
+local function getTargetFromString(pathStr)
+    local ok, result = pcall(function()
+        local current = Workspace
+        for _, part in ipairs(string.split(pathStr, ".")) do
+            current = current:FindFirstChild(part)
+            if not current then return nil end
+        end
+        return current
+    end)
+    return ok and result or nil
+end
+
+local function spamClickFast(obj)
+    if not obj or not obj:IsA("BasePart") then return end
+    local detector = obj:FindFirstChildWhichIsA("ClickDetector")
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+    if detector and hrp then
+        hrp.CFrame = obj.CFrame + Vector3.new(0, 1.5, 0)
+        for _ = 1, 105 do
+            task.spawn(function()
+                pcall(fireclickdetector, detector)
+            end)
+        end
+    end
+
+    if obj.Name == "Basketball" then
+        local tool = LocalPlayer.Character:FindFirstChild("Basketball")
+        local remote = tool and tool:FindFirstChild("ClickEvent")
+        if remote then
+            remote:FireServer(Vector3.new(-148.004, 0.4, 79.921))
+        end
+    end
+end
+
+local options = {}
+for name in pairs(lagTargets) do
+    table.insert(options, name)
+end
+table.sort(options, function(a, b)
+    return a == "Common" or (a < b and b ~= "Common")
+end)
+
+local Dropdown = TabLag:AddDropdown({
+    Name = "Selecione Método de lags",
+    Description = "Novos métodos de lags dripsolutions",
+    Options = options,
+    Default = "Common",
+    Flag = "LagTargetDropdown",
+    Callback = function(selected)
+        selectedName = selected
+    end
+})
+
+local Toggle = TabLag:AddToggle({
+    Name = "Começa Lags",
+    Description = "Ativa Onlag apos seleciona um metodo",
+    Default = false
+})
+
+Toggle:Callback(function(state)
+    if heartbeatConnection then
+        heartbeatConnection:Disconnect()
+        heartbeatConnection = nil
+    end
+
+    if not state then return end
+
+    if selectedName == "Common" then
+        local list = {}
+        for _, path in pairs(lagTargets) do
+            if path ~= true then
+                table.insert(list, path)
+            end
+        end
+        local i = 1
+        local currentObj = getTargetFromString(list[i])
+        local lastSwitch = tick()
+
+        heartbeatConnection = RunService.Heartbeat:Connect(function()
+            if tick() - lastSwitch >= 0.5 then
+                i = (i % #list) + 1
+                currentObj = getTargetFromString(list[i])
+                lastSwitch = tick()
+            end
+            if currentObj then spamClickFast(currentObj) end
+        end)
+    else
+        local obj = getTargetFromString(lagTargets[selectedName])
+        heartbeatConnection = RunService.Heartbeat:Connect(function()
+            if obj then spamClickFast(obj) end
+        end)
+    end
+end)
+
+TabLag:AddParagraph({ "Informação", "O lag começa após cerca de 35 segundos." })
