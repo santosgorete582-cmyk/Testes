@@ -2248,3 +2248,489 @@ RunService.Heartbeat:Connect(function()
         for _, p in pairs(Players:GetPlayers()) do updateESP(p) end
     end
 end)
+
+-- ====================================================================
+-- ABA: AVATAR 
+-- ====================================================================
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local Tab3 = Tab3 -- Certifique-se de que Tab3 ja existe
+
+--------------------------------------------------
+-- Section: Copy Avatar
+--------------------------------------------------
+local Section = Tab3:AddSection({"Copy Avatar"})
+
+local Target = nil
+
+local function GetPlayerNames()
+    local playerNames = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name ~= LocalPlayer.Name then
+            table.insert(playerNames, player.Name)
+        end
+    end
+    return playerNames
+end
+
+local Dropdown = Tab3:AddDropdown({
+    Name = "Players List",
+    Description = "Escolha um player para copiar a Skin",
+    Options = GetPlayerNames(),
+    Default = "",
+    Flag = "player list",
+    Callback = function(playername)
+        Target = playername
+    end
+})
+
+local function UpdatePlayers()
+    Dropdown:Set(GetPlayerNames())
+end
+
+UpdatePlayers()
+
+Tab3:AddButton({"Atualizar lista", function()
+    UpdatePlayers()
+end})
+
+Players.PlayerAdded:Connect(UpdatePlayers)
+Players.PlayerRemoving:Connect(UpdatePlayers)
+
+-- Função para copiar avatar
+local function CopyAvatar(targetName)
+    if not targetName then return end
+
+    local TPlayer = Players:FindFirstChild(targetName)
+    local LChar = LocalPlayer.Character
+    if not TPlayer or not TPlayer.Character or not LChar then return end
+
+    local LHumanoid = LChar:FindFirstChildOfClass("Humanoid")
+    local THumanoid = TPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not LHumanoid or not THumanoid then return end
+
+    local LDesc = LHumanoid:GetAppliedDescription()
+    local PDesc = THumanoid:GetAppliedDescription()
+
+    -- Resetar acessÃ³rios, roupas e face do local player
+    for _, acc in ipairs(LDesc:GetAccessories(true)) do
+        if acc.AssetId and tonumber(acc.AssetId) then
+            pcall(function() Remotes.Wear:InvokeServer(tonumber(acc.AssetId)) end)
+            task.wait(0.2)
+        end
+    end
+    if tonumber(LDesc.Shirt) then pcall(function() Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt)) end) task.wait(0.2) end
+    if tonumber(LDesc.Pants) then pcall(function() Remotes.Wear:InvokeServer(tonumber(LDesc.Pants)) end) task.wait(0.2) end
+    if tonumber(LDesc.Face) then pcall(function() Remotes.Wear:InvokeServer(tonumber(LDesc.Face)) end) task.wait(0.2) end
+
+    -- Aplicar partes do corpo do alvo
+    local argsBody = {
+        [1] = {
+            [1] = PDesc.Torso,
+            [2] = PDesc.RightArm,
+            [3] = PDesc.LeftArm,
+            [4] = PDesc.RightLeg,
+            [5] = PDesc.LeftLeg,
+            [6] = PDesc.Head
+        }
+    }
+    pcall(function() Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody)) end)
+    task.wait(0.5)
+
+    -- Equipar roupas e face do alvo
+    if tonumber(PDesc.Shirt) then pcall(function() Remotes.Wear:InvokeServer(tonumber(PDesc.Shirt)) end) task.wait(0.3) end
+    if tonumber(PDesc.Pants) then pcall(function() Remotes.Wear:InvokeServer(tonumber(PDesc.Pants)) end) task.wait(0.3) end
+    if tonumber(PDesc.Face) then pcall(function() Remotes.Wear:InvokeServer(tonumber(PDesc.Face)) end) task.wait(0.3) end
+    for _, v in ipairs(PDesc:GetAccessories(true)) do
+        if v.AssetId and tonumber(v.AssetId) then
+            pcall(function() Remotes.Wear:InvokeServer(tonumber(v.AssetId)) end)
+            task.wait(0.3)
+        end
+    end
+
+    -- Skin color
+    local SkinColor = TPlayer.Character:FindFirstChild("Body Colors")
+    if SkinColor then pcall(function() Remotes.ChangeBodyColor:FireServer(tostring(SkinColor.HeadColor)) end) task.wait(0.3) end
+
+    -- Idle animation
+    if tonumber(PDesc.IdleAnimation) then pcall(function() Remotes.Wear:InvokeServer(tonumber(PDesc.IdleAnimation)) end) task.wait(0.3) end
+
+    -- Nome, bio e cores
+    local Bag = TPlayer:FindFirstChild("PlayersBag")
+    if Bag then
+        if Bag:FindFirstChild("RPName") and Bag.RPName.Value ~= "" then pcall(function() Remotes.RPNameText:FireServer("RolePlayName", Bag.RPName.Value) end) task.wait(0.3) end
+        if Bag:FindFirstChild("RPBio") and Bag.RPBio.Value ~= "" then pcall(function() Remotes.RPNameText:FireServer("RolePlayBio", Bag.RPBio.Value) end) task.wait(0.3) end
+        if Bag:FindFirstChild("RPNameColor") then pcall(function() Remotes.RPNameColor:FireServer("PickingRPNameColor", Bag.RPNameColor.Value) end) task.wait(0.3) end
+        if Bag:FindFirstChild("RPBioColor") then pcall(function() Remotes.RPNameColor:FireServer("PickingRPBioColor", Bag.RPBioColor.Value) end) task.wait(0.3) end
+    end
+end
+
+Tab3:AddButton({
+    Name = "Copy Avatar",
+    Description = "Copiar a Skin do player selecionado",
+    Callback = function()
+        CopyAvatar(Target)
+    end
+})
+
+--------------------------------------------------
+-- Section: Roupas 3D / Avatares
+--------------------------------------------------
+local Section2 = Tab3:AddSection({"Roupas 3D"})
+
+local AvatarManager = {}
+AvatarManager.ReplicatedStorage = ReplicatedStorage
+AvatarManager.Avatares = {
+    { Nome = "Gato de Manga", ID = 124948425515124 },
+    { Nome = "Tung Saur", ID = 117098257036480 },
+    { Nome = "Tralaleiro", ID = 99459753608381 },
+    { Nome = "Monstro S.A", ID = 123609977175226 },
+    { Nome = "Trenzinho", ID = 80468697076178 },
+    { Nome = "Dino", ID = 11941741105 },
+    { Nome = "Pou idoso", ID = 15742966010  },
+    { Nome = "Coco/boxt@", ID = 77013984520332  },
+    { Nome = "Coelho", ID = 71797333686800  },
+    { Nome = "HipopÃ³tamo", ID = 73215892129281 },
+    { Nome = "Ratatui", ID = 108557570415453 },
+    { Nome = "Galinha", ID = 71251793812515 },
+    { Nome = "Pepa pig", ID = 92979204778377 },
+    { Nome = "pinguin", ID = 94944293759578 },
+    { Nome = "Sid", ID = 87442757321244 },
+    { Nome = "puga grande", ID = 111436158728716 },
+    { Nome = "SHREK AMALDIÃ‡OADO", ID = 120960401202173 },
+    { Nome = "mosquito grande", ID = 108052868536435 },
+    { Nome = "Noob Invertido", ID = 106596990206151 },
+    { Nome = "Pato(a)", ID = 135132836238349 },
+    { Nome = "Cachorro Chihuahua", ID = 18656467256 },
+    { Nome = "Gato sla", ID = 18994959003 },
+    { Nome = "Gato fei ", ID = 77506186615650 },
+    { Nome = "Inpostor", ID = 18234669337 },
+    { Nome = "Simon amarelo", ID = 75183593514657 },
+    { Nome = "Simon azul", ID = 76155710249925 }
+}
+
+function AvatarManager:GetAvatarNames()
+    local nomes = {}
+    for _, avatar in ipairs(self.Avatares) do
+        table.insert(nomes, avatar.Nome)
+    end
+    return nomes
+end
+
+function AvatarManager:MostrarNotificacao(mensagem)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Aviso",
+            Text = mensagem,
+            Duration = 5
+        })
+    end)
+end
+
+function AvatarManager:EquiparAvatar(avatarName)
+    for _, avatar in ipairs(self.Avatares) do
+        if avatar.Nome == avatarName then
+            local args = { avatar.ID }
+            pcall(function()
+                Remotes.Wear:InvokeServer(unpack(args))
+            end)
+            self:MostrarNotificacao("Avatar " .. avatarName .. " equipado com sucesso!")
+            return
+        end
+    end
+    self:MostrarNotificacao("Avatar " .. avatarName .. " nÃ£o encontrado!")
+end
+
+local AvatarDropdown = Tab3:AddDropdown({
+    Name = "Acessórios 3D",
+    Description = "Selecione para equipar",
+    Default = nil,
+    Options = AvatarManager:GetAvatarNames(),
+    Callback = function(avatarSelecionado)
+        _G.SelectedAvatar = avatarSelecionado
+    end
+})
+
+Tab3:AddButton({
+    Name = "Equipar",
+    Description = "Equipar selecionado",
+    Callback = function()
+        if not _G.SelectedAvatar or _G.SelectedAvatar == "" then
+            AvatarManager:MostrarNotificacao("Nenhum avatar selecionado!")
+            return
+        end
+        AvatarManager:EquiparAvatar(_G.SelectedAvatar)
+    end
+})
+
+--------------------------------------------------
+-- Section: Avatar Editor / Partes do corpo
+--------------------------------------------------
+local Section3 = Tab3:AddSection({"Avatar Editor"})
+
+Tab3:AddParagraph({
+    Title = "Aviso: vai resetar seu avatar",
+    Content = ""
+})
+
+-- FunÃ§Ã£o auxiliar para equipar partes do corpo
+local function EquipBody(ids)
+    pcall(function()
+        Remotes.ChangeCharacterBody:InvokeServer({ids})
+    end)
+    print("Partes do corpo equipadas!")
+end
+
+-- BotÃµes de partes do corpo
+Tab3:AddButton({
+    Name = "Mini REPO",
+    Callback = function()
+        local args = {{
+            117101023704825,125767940563838,137301494386930,87357384184710,133391239416999,111818794467824
+        }}
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ChangeCharacterBody"):InvokeServer(unpack(args))
+    end
+})
+
+Tab3:AddButton({
+    Name = "Mini Garanhão",
+    Callback = function()
+        local args = {{
+            124355047456535,120507500641962,82273782655463,113625313757230,109182039511426,0
+        }}
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ChangeCharacterBody"):InvokeServer(unpack(args))
+    end
+})
+
+Tab3:AddButton({
+    Name = "Stick",
+    Callback = function()
+        local args = {{
+            14731384498,14731377938,14731377894,14731377875,14731377941,14731382899
+        }}
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ChangeCharacterBody"):InvokeServer(unpack(args))
+    end
+})
+
+Tab3:AddButton({
+    Name = "Chunky-Bug",
+    Callback = function()
+        local args = {{
+            15527827600,15527827578,15527831669,15527836067,15527827184,15527827599
+        }}
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ChangeCharacterBody"):InvokeServer(unpack(args))
+    end
+})
+local Section3 = Tab3:AddSection({"FE Personagens Flash"})
+
+Tab3:AddButton({
+    Name = "Ativar Personagem Black Flash",
+    Description = "Ativa o personagem Black Flash FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/Black%20Flash"))()
+    end
+})
+Tab3:AddButton({
+    Name = "Ativar Personagem Flash",
+    Description = "Ativa o personagem Flash FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/Flash%20original"))()
+    end
+})
+Tab3:AddButton({
+    Name = "Ativar Personagem God Flash",
+    Description = "Ativa o personagem God Flash FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/GOD%20FLASH"))()
+    end
+})
+Tab3:AddButton({
+    Name = "Ativar Personagem Zoom Flash",
+    Description = "Ativa o personagem Zoom Flash FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/Zoom%20Flash"))()
+    end
+})
+Tab3:AddButton({
+    Name = "Ativar Personagem Flash Reverso",
+    Description = "Ativa o personagem Flash Reverso FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/flash%20reverso%20slk%20compen"))()
+    end
+})
+Tab3:AddButton({
+    Name = "Ativar Personagem Flash Reverso",
+    Description = "Ativa o personagem Flash FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/Flash%20original"))()
+    end
+})
+
+local Section3 = Tab3:AddSection({"FE Hackes"})
+ 
+ Tab3:AddButton({
+    Name = "Ativar Personagem Goner",
+    Description = "Ativa o personagem Goner FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/goner"))()
+    end
+})
+Tab3:AddButton({
+    Name = "Ativar Personagem 1x1x1x1",
+    Description = "Ativa o personagem 1x1x1x1 FE.",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Dboas123432sx/personagem/refs/heads/main/1x1x1x1"))()
+    end
+})
+
+
+-- ====================================================================
+-- ABA: ANTIS 
+-- ====================================================================
+TabAntis:AddToggle({
+    Name = "Anti Sit",
+    Description = "Não Deixa Seu Personagem Sentar",
+    Default = false,
+    Callback = function(state)
+        antiToolSit = state
+        local function updateSitState()
+            local hum = vu7.Character and vu7.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum:SetStateEnabled(Enum.HumanoidStateType.Seated, not (antiToolSit or antiCarSit))
+                if (antiToolSit or antiCarSit) and hum.Sit then hum.Sit = false end
+            end
+        end
+        
+        if state then
+            local connection
+            connection = vu10.Heartbeat:Connect(function()
+                if not antiToolSit then connection:Disconnect() return end
+                updateSitState()
+            end)
+        else
+            updateSitState()
+        end
+    end
+})
+
+TabAntis:AddToggle({
+    Name = "Anti Fling Ball",
+    Description = "Não Deixa a Bola Colidir Com Personagem",
+    Default = false,
+    Callback = AntiFlingLoop("Balls", function()
+        local folder = Workspace:FindFirstChild("WorkspaceCom")
+        return folder and folder:FindFirstChild("001_SoccerBalls")
+    end)
+})
+TabAntis:AddToggle({
+    Name = "Anti Fling Helicópteros",
+    Description = "Tira a Colisão do seu Personagem",
+    Default = false,
+    Callback = AntiFlingLoop("Helis", function()
+        local folder = Workspace:FindFirstChild("WorkspaceCom")
+        return folder and folder:FindFirstChild("001_HeliStorage") and folder["001_HeliStorage"]:FindFirstChild("PoliceStationHeli")
+    end)
+})
+TabAntis:AddButton({
+    Name = "Anti Som",
+    Description = "NÃO APERTE AQUI SEU CURIOSO",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/267266273ffsfs/antsom/refs/heads/main/Main.txt"))()
+    end
+})
+
+-- TOGGLES DE ANTI-FLING / SIT
+TabAntis:AddToggle({
+    Name = "Anti fling Carros",
+    Description = "Tira a Colisão So Seu Personagem",
+    Default = false,
+    Callback = AntiFlingLoop("Vehicles", function()
+        return Workspace:FindFirstChild("Vehicles")
+    end)
+})
+
+TabAntis:AddToggle({
+    Name = "Anti Canoe Fling",
+    Description = "Não Deixa seu personagem Sentar . e Tira a Colisão",
+    Default = false,
+    Callback = AntiFlingLoop("Canoes", function()
+        local workspaceCom = Workspace:FindFirstChild("WorkspaceCom")
+        return workspaceCom and workspaceCom:FindFirstChild("001_CanoeStorage")
+    end)
+})
+
+TabAntis:AddToggle({
+    Name = "Anti Fling Jets",
+    Description = "Tira a Colisão do seu personagem",
+    Default = false,
+    Callback = AntiFlingLoop("Jets", function()
+        local folder = Workspace:FindFirstChild("WorkspaceCom")
+        if folder and folder:FindFirstChild("001_Airport") then
+            local storage = folder["001_Airport"]:FindFirstChild("AirportHanger")
+            if storage then return storage:FindFirstChild("001_JetStorage") and storage["001_JetStorage"]:FindFirstChild("JetAirport") end
+        end
+    end)
+})
+
+TabAntis:AddSection({"Anti-Void"})
+TabAntis:AddToggle({ Name = "Anti-Void | v1", Callback = function(s) _G.AntiVoid = s end })
+
+TabTabProteção:AddSection({"Anti-collision all"})
+    TabAntis:AddToggle({ Name = "Anti-Collision", Callback = function(s) _G.AntiFling = s end })
+    
+    TabAntis:AddSection({"Anti-Lag"})
+TabAntis:AddToggle({ Name = "Anti-Lag | ainda ta em manutenção", Callback = function(s) _G.AntiLag = s ApplyAntiLag(s) end })
+
+TabTabAntis:AddSection({"Use isso quando se vc for lançado muito longe"})
+TabAntis:AddButton({
+    Name = "Anti-Map",
+    Description = "Use Isso Quando vc For Lançado pra Fora Do Mapa",
+    Callback = function()
+        local Player = game.Players.LocalPlayer
+        local Character = Player.Character
+        local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+        local Vehicles = game.Workspace:FindFirstChild("Vehicles")
+        if not RootPart or not Humanoid then
+            warn("Nenhum RootPart ou Humanoid encontrado!")
+            return
+        end
+        Humanoid.PlatformStand = true
+        print("Jogador paralisado para reduzir efeitos do spin.")
+        for _, obj in pairs(RootPart:GetChildren()) do
+            if obj:IsA("BodyAngularVelocity") or obj:IsA("BodyVelocity") then
+                obj:Destroy()
+            end
+        end
+        print("Spin e forÃ§as removidas do jogador.")
+        game:GetService("ReplicatedStorage").RE:FindFirstChild("1Ca1r"):FireServer("DeleteAllVehicles")
+        task.wait(0.5)
+        local PCar = Vehicles and Vehicles:FindFirstChild(Player.Name.."Car")
+        if PCar and PCar.PrimaryPart then
+            for _, obj in pairs(PCar.PrimaryPart:GetChildren()) do
+                if obj:IsA("BodyAngularVelocity") or obj:IsA("BodyVelocity") then
+                    obj:Destroy()
+                end
+            end
+            print("Spin removido do barco.")
+        end
+        task.wait(1)
+        local safePos = Vector3.new(0, 100, 0)
+        local bp = Instance.new("BodyPosition", RootPart)
+        bp.Position = safePos
+        bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        local bg = Instance.new("BodyGyro", RootPart)
+        bg.CFrame = RootPart.CFrame
+        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        print("Jogador estÃ¡ preso na coordenada segura.")
+        task.wait(3)
+        bp:Destroy()
+        bg:Destroy()
+        Humanoid.PlatformStand = false
+        print("Jogador liberado, seguro na posiÃ§Ã£o.")
+    end
+})
+
